@@ -27,6 +27,7 @@
 #include "led.h"
 #include "u8g2_user.h"
 #include "wifi.h"
+#include "wheelspeed.h"
 
 static const char *TAG = "main";
 
@@ -44,12 +45,13 @@ void app_main(void)
 
     led_init();
     u8g2_init(&u8g2);
-    u8g2_DrawFrame(&u8g2, 4, 4, 128-10, 64-10);
-    u8g2_SetFont(&u8g2, u8g2_font_spleen32x64_mf);
-    u8g2_DrawStr(&u8g2, 0, 48, "15");
+    u8g2_DrawFrame(&u8g2, 0, 0, 128, 64);
     u8g2_SetFont(&u8g2, u8g2_font_spleen8x16_mf);
-    u8g2_DrawStr(&u8g2, 70, 48, "km/h");
+    u8g2_DrawStr(&u8g2, 70, 56, "km/h");
+    u8g2_DrawStr(&u8g2, 64, 16, "  0.00");
+    u8g2_DrawStr(&u8g2, 113, 16, "km");
     u8g2_SendBuffer(&u8g2);
+    xTaskCreatePinnedToCore((void (*)(void *))wheel_speed, "whell_speed", 4096, &u8g2, 3, NULL, tskNO_AFFINITY);
     
     ESP_LOGI(TAG, "ESP_WIFI_MODE_STA");
     wifi_init_sta();

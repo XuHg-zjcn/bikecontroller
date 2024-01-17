@@ -124,9 +124,10 @@ static uint8_t st7567_jlx12864_gpio_and_delay_cb(u8x8_t *u8x8, uint8_t msg, uint
 
 void u8g2_init(u8g2_t *u8g2)
 {
-  u8g2_Setup_st7567_jlx12864_f(u8g2, U8G2_R2, st7567_jlx12864_byte_cb, st7567_jlx12864_gpio_and_delay_cb);
+  u8g2_Setup_st7567_jlx12864_f(u8g2, U8G2_R0, st7567_jlx12864_byte_cb, st7567_jlx12864_gpio_and_delay_cb);
   u8g2_InitDisplay(u8g2);
   u8g2_SetPowerSave(u8g2, 0);
   u8g2_ClearBuffer(u8g2);
   u8g2_SendBuffer(u8g2);
+  gpio_set_level(PIN_NUM_BL, 1);
 }
