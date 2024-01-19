@@ -28,6 +28,7 @@
 #include "u8g2_user.h"
 #include "wifi.h"
 #include "wheelspeed.h"
+#include "storage.h"
 
 static const char *TAG = "main";
 
@@ -51,6 +52,7 @@ void app_main(void)
     u8g2_DrawStr(&u8g2, 64, 16, "  0.00");
     u8g2_DrawStr(&u8g2, 113, 16, "km");
     u8g2_SendBuffer(&u8g2);
+    littlefs_init();
     xTaskCreatePinnedToCore((void (*)(void *))wheel_speed, "whell_speed", 4096, &u8g2, 3, NULL, tskNO_AFFINITY);
     
     ESP_LOGI(TAG, "ESP_WIFI_MODE_STA");

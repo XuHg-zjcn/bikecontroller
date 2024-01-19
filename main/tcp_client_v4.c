@@ -1,16 +1,26 @@
-/* 
- * Copyright (C) 2024 徐瑞骏
- * copy from esp-idf/examples/protocols/sockets/tcp_client/main/tcp_client_v4.c
- * the file was modify, modify content relase under orignal file's license
- */
 /*
- * SPDX-FileCopyrightText: 2022 Espressif Systems (Shanghai) CO LTD
+ * TCP客户端程序
+ * Copyright (C) 2024  徐瑞骏(科技骏马)
  *
- * SPDX-License-Identifier: Unlicense OR CC0-1.0
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Lesser General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU Lesser General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public License
+ * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 #include "sdkconfig.h"
+#include <stdio.h>
 #include <string.h>
 #include <unistd.h>
+#include <sys/types.h>
+#include <dirent.h>
 #include <sys/socket.h>
 #include <errno.h>
 #include <netdb.h>            // struct addrinfo
@@ -25,13 +35,25 @@
 #define HOST_IP_ADDR "192.168.1.18"
 #define PORT 3234
 
-static const char *TAG = "example";
-static const char *payload = "Message from ESP32 ";
+static const char *TAG = "tcp_client_v4";
+static const char hello[] = "hello";
 
+typedef enum{
+  Cmd_FileOpen = 0,
+  Cmd_FileClose,
+  Cmd_FileRead,
+  Cmd_FileDelete,
+  Cmd_DirOpen,
+  Cmd_DirClose,
+  Cmd_DirRead,
+}Command;
 
 void tcp_client(void)
 {
-    char rx_buffer[128];
+    FILE *fp = NULL;
+    DIR *dp = NULL;
+    uint8_t rx_buffer[32];
+    uint8_t tx_buffer[256];
     char host_ip[] = HOST_IP_ADDR;
     int addr_family = 0;
     int ip_protocol = 0;
@@ -57,28 +79,61 @@ void tcp_client(void)
             break;
         }
         ESP_LOGI(TAG, "Successfully connected");
+	ESP_LOGI(TAG, "send hello");
+	send(sock, hello, sizeof(hello), 0);
 
         while (1) {
-	    led_on();
-            int err = send(sock, payload, strlen(payload), 0);
-            if (err < 0) {
-                ESP_LOGE(TAG, "Error occurred during sending: errno %d", errno);
-                break;
-            }
-	    led_off();
-
-            int len = recv(sock, rx_buffer, sizeof(rx_buffer) - 1, 0);
+            int len = recv(sock, rx_buffer, sizeof(rx_buffer), 0);
             // Error occurred during receiving
             if (len < 0) {
                 ESP_LOGE(TAG, "recv failed: errno %d", errno);
                 break;
             }
-            // Data received
-            else {
-                rx_buffer[len] = 0; // Null-terminate whatever we received and treat like a string
-                ESP_LOGI(TAG, "Received %d bytes from %s:", len, host_ip);
-                ESP_LOGI(TAG, "%s", rx_buffer);
-            }
+	    switch(rx_buffer[0]){
+	    case Cmd_FileOpen:
+	      fp = fopen((char *)&rx_buffer[1], "r");
+	      tx_buffer[0] = 1;
+	      tx_buffer[1] = (fp==NULL)?1:0;
+	      break;
+	    case Cmd_FileClose:
+	      tx_buffer[0] = 1;
+	      tx_buffer[1] = fclose(fp);
+	      break;
+	    case Cmd_FileRead:
+	      size_t nr = fread(&tx_buffer[1], 1, rx_buffer[1], fp);
+	      tx_buffer[0] = nr;
+	      break;
+	    case Cmd_DirOpen:
+	      dp = opendir((char *)&rx_buffer[1]);
+	      tx_buffer[0] = 1;
+	      tx_buffer[1] = (dp==NULL)?1:0;
+	      break;
+	    case Cmd_DirClose:
+	      tx_buffer[0] = 1;
+	      tx_buffer[1] = closedir(dp);
+	      dp = NULL;
+	      break;
+	    case Cmd_DirRead:
+	      int nitem = rx_buffer[1];
+	      uint8_t *p = &tx_buffer[1];
+	      while(nitem--){
+		struct dirent *dire = readdir(dp);
+		if(dire == NULL){
+		  break;
+		}
+		if(tx_buffer+sizeof(tx_buffer)-p < 64){
+		  break;
+		}
+		strlcpy((char *)p, dire->d_name, 64);
+		p += strlen(dire->d_name)+1;
+	      }
+	      tx_buffer[0] = p - &tx_buffer[1];
+	      break;
+	    default:
+	      tx_buffer[0] = 0;
+	      break;
+	    }
+	    send(sock, tx_buffer, tx_buffer[0]+1, 0);
         }
 
         if (sock != -1) {
