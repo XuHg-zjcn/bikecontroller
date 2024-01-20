@@ -119,13 +119,14 @@ void tcp_client(void)
 	      while(nitem--){
 		struct dirent *dire = readdir(dp);
 		if(dire == NULL){
-		  break;
-		}
-		if(tx_buffer+sizeof(tx_buffer)-p < 64){
+		  *p++ = 0;
 		  break;
 		}
 		strlcpy((char *)p, dire->d_name, 64);
 		p += strlen(dire->d_name)+1;
+		if(tx_buffer+sizeof(tx_buffer)-p < 64){
+		  break;
+		}
 	      }
 	      tx_buffer[0] = p - &tx_buffer[1];
 	      break;
