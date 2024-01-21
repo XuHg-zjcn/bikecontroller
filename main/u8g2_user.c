@@ -150,3 +150,10 @@ void u8g2_show(u8g2_t *u8g2, float speed_kmh, float dist_km)
   u8g2_DrawStr(u8g2, 65, 16, temp_str);
   u8g2_SendBuffer(u8g2);
 }
+
+void u8g2_show_zero(u8g2_t *u8g2)
+{
+  u8g2_SetFont(u8g2, u8g2_font_spleen32x64_mf);
+  u8g2_DrawStr(u8g2, 0, 56, " 0");
+  u8g2_SendBuffer(u8g2);
+}

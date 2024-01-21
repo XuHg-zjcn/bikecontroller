@@ -32,6 +32,7 @@ static volatile uint64_t timer_samp;
 #define GPIO_NUM_HALL  12
 #define RESOLUTION_HZ  100000 // 100KHz
 #define METER_PER_CNT  1.52f
+#define SHOW_TIMEOUT_MS (METER_PER_CNT/(0.5/3.6)*1000)
 
 /**
  * @brief User defined context, to be passed to GPIO ISR callback function.
@@ -77,7 +78,7 @@ void wheel_speed(u8g2_t *u8g2)
     uint64_t ts_old=0, ts_curr=0;
     ESP_LOGI(TAG, "entry loop");
     while (1) {
-      if (xTaskNotifyWait(0x00, ULONG_MAX, &hall_cnt, pdMS_TO_TICKS(1000)) == pdTRUE) {
+      if (xTaskNotifyWait(0x00, ULONG_MAX, &hall_cnt, pdMS_TO_TICKS(SHOW_TIMEOUT_MS)) == pdTRUE) {
 	ts_curr = timer_samp/10;
 	uint64_t ticks_hall = ts_curr - ts_old;
 	if (ticks_hall < RESOLUTION_HZ/50) {
@@ -90,6 +91,8 @@ void wheel_speed(u8g2_t *u8g2)
 	u8g2_show(u8g2, speed_kmh, dist_km);
 	storage_record_wheelspeed(hall_cnt, ticks_hall);
 	ts_old = ts_curr;
+      }else{
+	u8g2_show_zero(u8g2);
       }
     }
 }
