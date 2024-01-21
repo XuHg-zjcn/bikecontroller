@@ -16,6 +16,7 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 #include "storage.h"
+#include <stdint.h>
 #include <stdio.h>
 #include <string.h>
 #include <sys/stat.h>
@@ -28,7 +29,10 @@
 #include <sys/types.h>
 #include <dirent.h>
 
+#define CNT_PER_FLUSH  32
+
 static const char *TAG = "esp_littlefs";
+static FILE *fp_rec = NULL;
 
 void littlefs_init()
 {
@@ -66,7 +70,7 @@ void littlefs_init()
     }
 }
 
-int storage_get_next_filename(char *str_out)
+static int storage_get_next_filename(char *str_out)
 {
     struct dirent *dire;
     int last = 0;
@@ -85,4 +89,36 @@ int storage_get_next_filename(char *str_out)
     }
     sprintf(str_out, "/littlefs/%d.dat", last+1);
     return 0;
+}
+
+void storage_record_wheelspeed(uint32_t hall_cnt, uint64_t ticks_hall)
+{
+  if (ticks_hall > UINT32_MAX){
+    if(fp_rec != NULL){
+      fclose(fp_rec);
+      fp_rec = NULL;
+    }
+  }
+  if(ticks_hall <= UINT32_MAX){
+    uint32_t ticks_hall_u32 = ticks_hall;
+    if(fp_rec == NULL){
+      char fname[16];
+      ESP_LOGI(TAG, "Getting filename");
+      storage_get_next_filename(fname);
+      ESP_LOGI(TAG, "Opening file %s", fname);
+      fp_rec = fopen(fname, "w");
+      if(fp_rec == NULL){
+	ESP_LOGE(TAG, "Open Failed");
+      }
+    }
+    if(fp_rec != NULL){
+      fwrite(&ticks_hall_u32, sizeof(uint32_t), 1, fp_rec);
+      if(hall_cnt % CNT_PER_FLUSH == 0){
+	ESP_LOGI(TAG, "Flush data");
+	if(fflush(fp_rec) != 0){
+	  ESP_LOGE(TAG, "Flush Failed");
+	}
+      }
+    }
+  }
 }

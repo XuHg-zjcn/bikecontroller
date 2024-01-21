@@ -22,6 +22,7 @@
 #include "driver/spi_master.h"
 #include "esp_rom_sys.h"
 #include <string.h>
+#include <math.h>
 
 #define LCD_HOST    SPI3_HOST
 #define PIN_NUM_MISO 19 //unused
@@ -130,4 +131,22 @@ void u8g2_init(u8g2_t *u8g2)
   u8g2_ClearBuffer(u8g2);
   u8g2_SendBuffer(u8g2);
   gpio_set_level(PIN_NUM_BL, 1);
+}
+
+void u8g2_show(u8g2_t *u8g2, float speed_kmh, float dist_km)
+{
+  char temp_str[16];
+  int speed_show = (int)roundf(speed_kmh);
+  if(speed_show < 0)
+    speed_show = 0;
+  if(speed_show > 99)
+    speed_show = 99;
+  snprintf(temp_str, 16, "%2d", speed_show);
+  u8g2_SetFont(u8g2, u8g2_font_spleen32x64_mf);
+  u8g2_DrawStr(u8g2, 0, 56, temp_str);
+
+  snprintf(temp_str, 16, "%6.2f", dist_km);
+  u8g2_SetFont(u8g2, u8g2_font_spleen8x16_mf);
+  u8g2_DrawStr(u8g2, 65, 16, temp_str);
+  u8g2_SendBuffer(u8g2);
 }

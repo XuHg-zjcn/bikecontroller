@@ -18,7 +18,9 @@
 #ifndef STORAGE_H
 #define STORAGE_H
 
+#include <stdint.h>
+
 void littlefs_init();
-int storage_get_next_filename(char *str_out);
+void storage_record_wheelspeed(uint32_t hall_cnt, uint64_t ticks_hall);
 
 #endif
