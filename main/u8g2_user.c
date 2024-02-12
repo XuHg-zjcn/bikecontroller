@@ -36,6 +36,16 @@
 
 static spi_device_handle_t dev;
 
+void lcd_bl_off()
+{
+  gpio_set_level(PIN_NUM_BL, 0);
+}
+
+void lcd_bl_on()
+{
+  gpio_set_level(PIN_NUM_BL, 1);
+}
+
 static void st7567_gpio_spi_init()
 {
   esp_err_t ret;
@@ -130,7 +140,7 @@ void u8g2_init(u8g2_t *u8g2)
   u8g2_SetPowerSave(u8g2, 0);
   u8g2_ClearBuffer(u8g2);
   u8g2_SendBuffer(u8g2);
-  gpio_set_level(PIN_NUM_BL, 1);
+  lcd_bl_on();
 }
 
 void u8g2_show(u8g2_t *u8g2, float speed_kmh, float dist_km)

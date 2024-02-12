@@ -25,6 +25,7 @@
 #include <math.h>
 #include "u8g2_user.h"
 #include "storage.h"
+#include "power.h"
 
 static const char *TAG = "wheelspeed";
 static volatile uint64_t timer_samp;
@@ -47,12 +48,10 @@ typedef struct {
  */
 static void hall_callback(void *user_data)
 {
-    static uint32_t count;
     timer_samp = esp_timer_get_time();
     gpio_callback_user_data_t *callback_user_data = (gpio_callback_user_data_t *)user_data;
     TaskHandle_t task_to_notify = callback_user_data->task_to_notify;
-    count++;
-    xTaskNotifyFromISR(task_to_notify, count, eSetValueWithOverwrite, NULL);
+    xTaskNotifyFromISR(task_to_notify, 0, eNoAction, NULL);
 }
 
 void wheel_speed(u8g2_t *u8g2)
@@ -78,21 +77,23 @@ void wheel_speed(u8g2_t *u8g2)
     uint64_t ts_old=0, ts_curr=0;
     ESP_LOGI(TAG, "entry loop");
     while (1) {
-      if (xTaskNotifyWait(0x00, ULONG_MAX, &hall_cnt, pdMS_TO_TICKS(SHOW_TIMEOUT_MS)) == pdTRUE) {
+      if (xTaskNotifyWait(0x00, ULONG_MAX, NULL, pdMS_TO_TICKS(SHOW_TIMEOUT_MS)) == pdTRUE) {
 	ts_curr = timer_samp/10;
 	uint64_t ticks_hall = ts_curr - ts_old;
 	if (ticks_hall < RESOLUTION_HZ/50) {
 	  //too short
 	  continue;
 	}
+	hall_cnt++;
 	float speed_kmh = (METER_PER_CNT*3.6*RESOLUTION_HZ)/(float)ticks_hall;
 	float dist_km = METER_PER_CNT*hall_cnt/1000.0;
-	ESP_LOGI(TAG, "hall_cnt: %lu, speed: %.2fkm/h", hall_cnt, speed_kmh);
+	ESP_LOGI(TAG, "hall_cnt: %lu, ticks=%llu, speed: %.2fkm/h", hall_cnt, ticks_hall, speed_kmh);
 	u8g2_show(u8g2, speed_kmh, dist_km);
 	storage_record_wheelspeed(hall_cnt, ticks_hall);
 	ts_old = ts_curr;
       }else{
 	u8g2_show_zero(u8g2);
+	power_light_sleep();
       }
     }
 }

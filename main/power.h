@@ -1,5 +1,5 @@
 /*
- * U8G2用户文件
+ * power.h: 电源管理
  * Copyright (C) 2024  徐瑞骏(科技骏马)
  *
  * This program is free software: you can redistribute it and/or modify
@@ -15,15 +15,12 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
-#ifndef U8G2_USER_H
-#define U8G2_USER_H
+#ifndef POWER_H
+#define POWER_H
 
-#include "u8g2.h"
+#include "esp_check.h"
 
-void lcd_bl_off();
-void lcd_bl_on();
-void u8g2_init(u8g2_t *u8g2);
-void u8g2_show(u8g2_t *u8g2, float speed_kmh, float dist_km);
-void u8g2_show_zero(u8g2_t *u8g2);
+esp_err_t power_set_walkup_pin(int pin_num, int trig_stat);
+void power_light_sleep();
 
 #endif
