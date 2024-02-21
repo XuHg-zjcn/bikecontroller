@@ -57,5 +57,5 @@ void app_main(void)
     
     ESP_LOGI(TAG, "ESP_WIFI_MODE_STA");
     wifi_init_sta();
-    tcp_client();
+    xTaskCreatePinnedToCore((void (*)(void *))client_fn, "client", 4096, NULL, 3, NULL, tskNO_AFFINITY);
 }

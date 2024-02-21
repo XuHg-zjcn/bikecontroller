@@ -111,17 +111,22 @@ class Device:
         assert ret == b'\x01\x00'
         return nb
 
+def session(s, a):
+    dev = Device(s, a)
+    files = dev.lsdir(DEV_BASEPATH)
+    print('files:', files)
+    for i in files:
+        local_path = os.path.join(LOCAL_BASEPATH, i)
+        if not os.path.exists(local_path):
+            dev_path = DEV_BASEPATH + '/' + i
+            print('download', dev_path)
+            print(dev.downloadfile(dev_path, local_path), 'bytes')
+            print()
 
 sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
 sock.bind(('0.0.0.0', 3234))
 sock.listen()
-s, a = sock.accept()
-dev = Device(s, a)
-files = dev.lsdir(DEV_BASEPATH)
-print('files:', files)
-for i in files:
-    dev_path = DEV_BASEPATH + '/' + i
-    local_path = os.path.join(LOCAL_BASEPATH, i)
-    print(dev_path)
-    print(dev.downloadfile(dev_path, local_path), 'bytes')
-    print()
+while True:
+    s, a = sock.accept()
+    session(s, a)

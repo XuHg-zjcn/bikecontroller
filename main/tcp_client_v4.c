@@ -38,6 +38,9 @@
 static const char *TAG = "tcp_client_v4";
 static const char hello[] = "hello";
 
+extern EventGroupHandle_t s_wifi_event_group;
+#define WIFI_CONNECTED_BIT BIT0
+
 typedef enum{
   Cmd_FileOpen = 0,
   Cmd_FileClose,
@@ -48,7 +51,7 @@ typedef enum{
   Cmd_DirRead,
 }Command;
 
-void tcp_client(void)
+static void tcp_client(void)
 {
     FILE *fp = NULL;
     DIR *dp = NULL;
@@ -143,4 +146,13 @@ void tcp_client(void)
             close(sock);
         }
     }
+}
+
+void client_fn(void)
+{
+  while(1){
+    xEventGroupWaitBits(s_wifi_event_group, WIFI_CONNECTED_BIT, pdFALSE, pdFALSE, portMAX_DELAY);
+    tcp_client();
+    vTaskDelay(pdMS_TO_TICKS(60000));
+  }
 }
