@@ -30,10 +30,10 @@ static const char *TAG = "example";
 
 // Pin assignments can be set in menuconfig, see "SD SPI Example Configuration" menu.
 // You can also change the pin assignments here by changing the following 4 lines.
-#define PIN_NUM_MISO  CONFIG_EXAMPLE_PIN_MISO
-#define PIN_NUM_MOSI  CONFIG_EXAMPLE_PIN_MOSI
-#define PIN_NUM_CLK   CONFIG_EXAMPLE_PIN_CLK
-#define PIN_NUM_CS    CONFIG_EXAMPLE_PIN_CS
+#define PIN_NUM_MISO  CONFIG_SDSPI_PIN_MISO
+#define PIN_NUM_MOSI  CONFIG_SDSPI_PIN_MOSI
+#define PIN_NUM_CLK   CONFIG_SDSPI_PIN_CLK
+#define PIN_NUM_CS    CONFIG_SDSPI_PIN_CS
 
 void sdcard_init()
 {

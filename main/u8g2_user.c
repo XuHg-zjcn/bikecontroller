@@ -25,14 +25,14 @@
 #include <math.h>
 
 #define LCD_HOST    SPI3_HOST
-#define PIN_NUM_MISO 19 //unused
-#define PIN_NUM_MOSI 23
-#define PIN_NUM_CLK  18
-#define PIN_NUM_CS   25
+#define PIN_NUM_MISO CONFIG_LCD_PIN_MISO //unused
+#define PIN_NUM_MOSI CONFIG_LCD_PIN_MOSI
+#define PIN_NUM_CLK  CONFIG_LCD_PIN_CLK
+#define PIN_NUM_CS   CONFIG_LCD_PIN_CS
 
-#define PIN_NUM_DC   22
-#define PIN_NUM_RST  21
-#define PIN_NUM_BL   26
+#define PIN_NUM_DC   CONFIG_LCD_PIN_DC
+#define PIN_NUM_RST  CONFIG_LCD_PIN_RST
+#define PIN_NUM_BL   CONFIG_LCD_PIN_BL
 
 static spi_device_handle_t dev;
 

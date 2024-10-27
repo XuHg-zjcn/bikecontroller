@@ -30,7 +30,7 @@
 static const char *TAG = "wheelspeed";
 static volatile uint64_t timer_samp;
 
-#define GPIO_NUM_HALL  12
+#define GPIO_NUM_HALL  CONFIG_HALL_PIN
 #define RESOLUTION_HZ  100000 // 100KHz
 #define METER_PER_CNT  1.52f
 #define SHOW_TIMEOUT_MS (METER_PER_CNT/(0.5/3.6)*1000)

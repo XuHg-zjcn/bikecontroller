@@ -64,19 +64,20 @@ menu "Example Configuration"
             bool "WAPI PSK"
     endchoice
 
-endmenu
-
-menu "SD SPI Example Configuration"
-
-    config EXAMPLE_FORMAT_IF_MOUNT_FAILED
+    config SDSPI_FORMAT_IF_MOUNT_FAILED
         bool "Format the card if mount failed"
         default n
         help
             If this config item is set, format_if_mount_failed will be set to true and the card will be formatted if
             the mount has failed.
 
-    config EXAMPLE_PIN_MOSI
-        int "MOSI GPIO number"
+
+endmenu
+
+menu "GPIO Pin Configuration"
+
+    config SDSPI_PIN_MOSI
+        int "SDSPI MOSI GPIO number"
         default 15 if IDF_TARGET_ESP32
         default 35 if IDF_TARGET_ESP32S2
         default 35 if IDF_TARGET_ESP32S3
@@ -84,8 +85,8 @@ menu "SD SPI Example Configuration"
         default 11 if IDF_TARGET_ESP32P4
         default 4  # C3 and others
 
-    config EXAMPLE_PIN_MISO
-        int "MISO GPIO number"
+    config SDSPI_PIN_MISO
+        int "SDSPI MISO GPIO number"
         default 2 if IDF_TARGET_ESP32
         default 37 if IDF_TARGET_ESP32S2
         default 37 if IDF_TARGET_ESP32S3
@@ -93,8 +94,8 @@ menu "SD SPI Example Configuration"
         default 13 if IDF_TARGET_ESP32P4
         default 6  # C3 and others
 
-    config EXAMPLE_PIN_CLK
-        int "CLK GPIO number"
+    config SDSPI_PIN_CLK
+        int "SDSPI CLK GPIO number"
         default 14 if IDF_TARGET_ESP32
         default 36 if IDF_TARGET_ESP32S2
         default 36 if IDF_TARGET_ESP32S3
@@ -102,12 +103,44 @@ menu "SD SPI Example Configuration"
         default 12 if IDF_TARGET_ESP32P4
         default 5  # C3 and others
 
-    config EXAMPLE_PIN_CS
-        int "CS GPIO number"
+    config SDSPI_PIN_CS
+        int "SDSPI CS GPIO number"
         default 13 if IDF_TARGET_ESP32
         default 34 if IDF_TARGET_ESP32S2
         default 34 if IDF_TARGET_ESP32S3
         default 10 if IDF_TARGET_ESP32P4
         default 1  # C3 and others
+
+    config LCD_PIN_MISO
+        int "LCD MISO GPIO number"
+        default 19
+
+    config LCD_PIN_MOSI
+        int "LCD MOSI GPIO number"
+        default 23
+
+    config LCD_PIN_CLK
+        int "LCD CLK GPIO number"
+        default 18
+
+    config LCD_PIN_CS
+        int "LCD CS GPIO number"
+        default 25
+
+    config LCD_PIN_DC
+        int "LCD DC(Data/Command Select) GPIO number"
+        default 22
+
+    config LCD_PIN_RST
+	int "LCD RST(Reset) GPIO number"
+	default 21
+
+    config LCD_PIN_BL
+        int "LCD BL(backlight) GPIO number"
+        default 26
+
+    config HALL_PIN
+        int "Hall sensor GPIO number"
+	default 12
 
 endmenu
