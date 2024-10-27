@@ -32,7 +32,7 @@
 #include "addr_from_stdin.h"
 #endif
 
-#define HOST_IP_ADDR "192.168.1.18"
+#define HOST_IP_ADDR "192.168.1.16"
 #define PORT 3234
 
 static const char *TAG = "tcp_client_v4";

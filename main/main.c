@@ -29,6 +29,7 @@
 #include "wifi.h"
 #include "wheelspeed.h"
 #include "storage.h"
+#include "sdcard.h"
 
 static const char *TAG = "main";
 
@@ -45,6 +46,7 @@ void app_main(void)
     ESP_ERROR_CHECK(ret);
 
     led_init();
+    sdcard_init();
     u8g2_init(&u8g2);
     u8g2_DrawFrame(&u8g2, 0, 0, 128, 64);
     u8g2_SetFont(&u8g2, u8g2_font_spleen8x16_mf);
