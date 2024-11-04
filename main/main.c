@@ -30,6 +30,8 @@
 #include "wheelspeed.h"
 #include "storage.h"
 #include "sdcard.h"
+#include "i2c.h"
+#include "mpu9250.h"
 
 static const char *TAG = "main";
 
@@ -46,6 +48,7 @@ void app_main(void)
     ESP_ERROR_CHECK(ret);
 
     led_init();
+    i2c_master_init();
     sdcard_init();
     u8g2_init(&u8g2);
     u8g2_DrawFrame(&u8g2, 0, 0, 128, 64);
@@ -55,7 +58,9 @@ void app_main(void)
     u8g2_DrawStr(&u8g2, 113, 16, "km");
     u8g2_SendBuffer(&u8g2);
     littlefs_init();
+    mpu9250_init();
     xTaskCreatePinnedToCore((void (*)(void *))wheel_speed, "whell_speed", 4096, &u8g2, 3, NULL, tskNO_AFFINITY);
+    xTaskCreatePinnedToCore((void (*)(void *))mpu9250_print_data, "mpu9250", 4096, &u8g2, 3, NULL, tskNO_AFFINITY);
     
     ESP_LOGI(TAG, "ESP_WIFI_MODE_STA");
     wifi_init_sta();

@@ -5,6 +5,8 @@ idf_component_register(SRCS "main.c"
 			    "storage.c"
 			    "power.c"
 			    "sdcard.c"
+			    "i2c.c"
+			    "mpu9250.c"
                        INCLUDE_DIRS ".")
 
 # Note: you must have a partition named the first argument (here it's "littlefs")
