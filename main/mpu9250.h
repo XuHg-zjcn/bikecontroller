@@ -18,7 +18,15 @@
 #ifndef MPU9250_H
 #define MPU9250_H
 
+#ifdef __cplusplus
+extern "C"{
+#endif
+
 int mpu9250_init();
 void mpu9250_print_data();
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif

@@ -20,6 +20,8 @@
 #include "freertos/FreeRTOS.h"
 #include "esp_log.h"
 #include "driver/i2c.h"
+#include "buffer.hpp"
+#include "writer.hpp"
 
 //register names copy from document "RM-MPU-9250A-00", revision 1.4
 #define SELF_TEST_X_GYRO     0x00
@@ -101,8 +103,10 @@
 #define ZA_OFFSET_L          0x7E
 
 #define MPU9250_I2C_ADDR     0x68
-#define MPU9250_I2C_NUM      0
+#define MPU9250_I2C_NUM      ((i2c_port_t)0)
 #define MPU9250_I2C_TIMEOUT  100
+
+Buffer *buffmpu;
 
 //copy from esp-idf/examples/peripherals/i2c/i2c_simple/main/i2c_simple_main.c
 /**
@@ -152,6 +156,7 @@ int mpu9250_init()
   //TODO: self-test
   //TODO: enable magnetometer
   //TODO: enable Wake-on-motion
+  buffmpu = new Buffer(2*6, 100);
   return 0;
 }
 
@@ -169,6 +174,7 @@ void mpu9250_print_data()
     data[3] = buff[8]*256+buff[9];
     data[4] = buff[10]*256+buff[11];
     data[5] = buff[12]*256+buff[13];
+    buffmpu->w_head.push_force(1, data);
     printf("acc %d,%d,%d; gryo %d,%d,%d\n",
 	   data[0], data[1], data[2],
 	   data[3], data[4], data[5]);
