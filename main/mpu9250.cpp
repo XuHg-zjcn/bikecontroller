@@ -106,7 +106,7 @@
 #define MPU9250_I2C_NUM      ((i2c_port_t)0)
 #define MPU9250_I2C_TIMEOUT  100
 
-Buffer *buffmpu;
+Buffer buffmpu(2*6, 128);
 
 //copy from esp-idf/examples/peripherals/i2c/i2c_simple/main/i2c_simple_main.c
 /**
@@ -156,7 +156,6 @@ int mpu9250_init()
   //TODO: self-test
   //TODO: enable magnetometer
   //TODO: enable Wake-on-motion
-  buffmpu = new Buffer(2*6, 100);
   return 0;
 }
 
@@ -165,7 +164,7 @@ void mpu9250_print_data()
   int16_t data[6];
   uint8_t buff[16];
   while(1){
-    vTaskDelay(pdMS_TO_TICKS(100));
+    vTaskDelay(pdMS_TO_TICKS(10));
     mpu9250_register_read(ACCEL_XOUT_H, buff, 6);
     mpu9250_register_read(GYRO_XOUT_H, buff+8, 6);
     data[0] = buff[0]*256+buff[1];
@@ -174,9 +173,6 @@ void mpu9250_print_data()
     data[3] = buff[8]*256+buff[9];
     data[4] = buff[10]*256+buff[11];
     data[5] = buff[12]*256+buff[13];
-    buffmpu->w_head.push_force(1, data);
-    printf("acc %d,%d,%d; gryo %d,%d,%d\n",
-	   data[0], data[1], data[2],
-	   data[3], data[4], data[5]);
+    buffmpu.w_head.push_force(1, data);
   }
 }

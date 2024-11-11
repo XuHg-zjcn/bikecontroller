@@ -32,6 +32,7 @@
 #include "sdcard.h"
 #include "i2c.h"
 #include "mpu9250.h"
+#include "record.h"
 
 static const char *TAG = "main";
 
@@ -60,7 +61,8 @@ void app_main(void)
     littlefs_init();
     mpu9250_init();
     xTaskCreatePinnedToCore((void (*)(void *))wheel_speed, "whell_speed", 4096, &u8g2, 3, NULL, tskNO_AFFINITY);
-    xTaskCreatePinnedToCore((void (*)(void *))mpu9250_print_data, "mpu9250", 4096, &u8g2, 3, NULL, tskNO_AFFINITY);
+    xTaskCreatePinnedToCore((void (*)(void *))mpu9250_print_data, "mpu9250", 4096, NULL, 3, NULL, tskNO_AFFINITY);
+    xTaskCreatePinnedToCore((void (*)(void *))record_proc, "record", 4096, NULL, 3, NULL, tskNO_AFFINITY);
     
     ESP_LOGI(TAG, "ESP_WIFI_MODE_STA");
     wifi_init_sta();
