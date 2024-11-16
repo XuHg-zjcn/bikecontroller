@@ -105,6 +105,7 @@
 #define MPU9250_I2C_ADDR     0x68
 #define MPU9250_I2C_NUM      ((i2c_port_t)0)
 #define MPU9250_I2C_TIMEOUT  100
+#define AK8963_I2C_ADDR     0x0C
 
 Buffer buffmpu(2*6, 128);
 
@@ -115,6 +116,17 @@ Buffer buffmpu(2*6, 128);
 static esp_err_t mpu9250_register_read(uint8_t reg_addr, uint8_t *data, size_t len)
 {
     return i2c_master_write_read_device(MPU9250_I2C_NUM, MPU9250_I2C_ADDR, &reg_addr, 1, data, len, MPU9250_I2C_TIMEOUT / portTICK_PERIOD_MS);
+}
+
+static int mpu9250_register_read_byte(uint8_t reg_addr)
+{
+    uint8_t data;
+    esp_err_t res = mpu9250_register_read(reg_addr, &data, 1);
+    if(res != ESP_OK){
+        return -1;
+    }else{
+        return data;
+    }
 }
 
 /**
@@ -130,6 +142,77 @@ static esp_err_t mpu9250_register_write_byte(uint8_t reg_addr, uint8_t data)
     return ret;
 }
 
+static int ak8963_register_read(uint8_t reg_addr, uint8_t *data, size_t len)
+{
+    return i2c_master_write_read_device(MPU9250_I2C_NUM, AK8963_I2C_ADDR, &reg_addr, 1, data, len, MPU9250_I2C_TIMEOUT / portTICK_PERIOD_MS);
+}
+
+static int ak8963_register_read_byte(uint8_t reg_addr)
+{
+    uint8_t data;
+    esp_err_t res = ak8963_register_read(reg_addr, &data, 1);
+    if(res != ESP_OK){
+        return -1;
+    }else{
+        return data;
+    }
+}
+
+static esp_err_t ak8963_register_write_byte(uint8_t reg_addr, uint8_t data)
+{
+    int ret;
+    uint8_t write_buf[2] = {reg_addr, data};
+
+    ret = i2c_master_write_to_device(MPU9250_I2C_NUM, AK8963_I2C_ADDR, write_buf, sizeof(write_buf), MPU9250_I2C_TIMEOUT / portTICK_PERIOD_MS);
+
+    return ret;
+}
+
+//MPU9250 I2C 主机读取函数暂时无法使用
+static int mpu9250_slave_write_reg(uint8_t slave_addr, uint8_t reg_addr, uint8_t data)
+{
+   int mst_stat;
+   int count=0;
+   mpu9250_register_write_byte(I2C_SLV4_CTRL, 0x00); //disable slave4
+   mpu9250_register_read_byte(I2C_MST_STATUS);       //clear flags
+   mpu9250_register_write_byte(I2C_SLV4_ADDR,  slave_addr | (0U<<7));
+   mpu9250_register_write_byte(I2C_SLV4_REG, reg_addr);
+   mpu9250_register_write_byte(I2C_SLV4_DO, data);
+   mpu9250_register_write_byte(I2C_SLV4_CTRL, (1U<<7));
+   do{
+     vTaskDelay(pdMS_TO_TICKS(10));
+     mst_stat = mpu9250_register_read_byte(I2C_MST_STATUS);
+   }while(!(mst_stat & 0x50) && (++count)<20);
+   if(mst_stat & 0x10){
+     return -1;
+   }else if(count>=20){
+     return -2;
+   }else{
+     return 0;
+   }
+}
+
+static int mpu9250_slave_read_reg(uint8_t slave_addr, uint8_t reg_addr)
+{
+  int mst_stat;
+  int count=0;
+  mpu9250_register_write_byte(I2C_SLV4_CTRL, 0x00); //disable slave4
+  mpu9250_register_read_byte(I2C_MST_STATUS);       //clear flags
+  mpu9250_register_write_byte(I2C_SLV4_ADDR,  slave_addr | (1U<<7));
+  mpu9250_register_write_byte(I2C_SLV4_REG, reg_addr);
+  mpu9250_register_write_byte(I2C_SLV4_CTRL, (1U<<7));
+  do{
+    vTaskDelay(pdMS_TO_TICKS(10));
+    mst_stat = mpu9250_register_read_byte(I2C_MST_STATUS);
+  }while(!(mst_stat & 0x50) && (++count)<20);
+  if(mst_stat & 0x10){
+    return -1;
+  }else if(count>=20){
+    return -2;
+  }else{
+    return mpu9250_register_read_byte(I2C_SLV4_DI);
+  }
+}
 
 int mpu9250_init()
 {
@@ -151,14 +234,28 @@ int mpu9250_init()
   mpu9250_register_write_byte(PWR_MGMT_1, 0x80); //reset MPU9250
   mpu9250_register_write_byte(PWR_MGMT_1, 0x00); //exit sleep mode
   //mpu9250_register_write_byte(PWR_MGMT_2, 0x00); //enable all acc,gyro axes
+  //mpu9250_register_write_byte(USER_CTRL, 0x20); //enable I2C Master
+  mpu9250_register_write_byte(INT_PIN_CFG, 0x02); //enable bypass
   mpu9250_register_write_byte(GRYO_CONFIG, 0x18); //+-2000dps
   mpu9250_register_write_byte(ACCEL_CONFIG, 0x18); //+-16g
   //TODO: self-test
-  //TODO: enable magnetometer
+  //TODO: record magnetometer data
   //TODO: enable Wake-on-motion
+  printf("gryo and accel config finish\n");
+
+  int wia = ak8963_register_read_byte(0x00);
+  //int wia = mpu9250_slave_read_reg(AK8963_I2C_ADDR, 0x00);
+  if(wia < 0){
+    printf("read mpu9250's magnet(AK8963) WIA failed %d\n", wia);
+  }else if(wia != 0x48){
+    printf("mpu9250's magnet WIA mistake 0x%02x\n", wia);
+  }else{
+    printf("mpu9250's magnet detected\n");
+  }
   return 0;
 }
 
+//TODO: move C++ code to another file
 void mpu9250_print_data()
 {
   int16_t data[6];
