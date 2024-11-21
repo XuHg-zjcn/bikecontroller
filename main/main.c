@@ -64,7 +64,12 @@ void app_main(void)
     xTaskCreatePinnedToCore((void (*)(void *))mpu9250_print_data, "mpu9250", 4096, NULL, 3, NULL, tskNO_AFFINITY);
     xTaskCreatePinnedToCore((void (*)(void *))record_proc, "record", 4096, NULL, 3, NULL, tskNO_AFFINITY);
     
-    ESP_LOGI(TAG, "ESP_WIFI_MODE_STA");
-    wifi_init_sta();
-    xTaskCreatePinnedToCore((void (*)(void *))client_fn, "client", 4096, NULL, 3, NULL, tskNO_AFFINITY);
+    //ESP_LOGI(TAG, "ESP_WIFI_MODE_STA");
+    //wifi_init_sta();
+    //xTaskCreatePinnedToCore((void (*)(void *))client_fn, "client", 4096, NULL, 3, NULL, tskNO_AFFINITY);
+    while(1){
+      vTaskDelay(pdMS_TO_TICKS(50));
+      u8g2_show_mag(&u8g2);
+      u8g2_SendBuffer(&u8g2);
+    }
 }

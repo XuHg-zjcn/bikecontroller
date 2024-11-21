@@ -25,5 +25,6 @@ void lcd_bl_on();
 void u8g2_init(u8g2_t *u8g2);
 void u8g2_show(u8g2_t *u8g2, float speed_kmh, float dist_km);
 void u8g2_show_zero(u8g2_t *u8g2);
+void u8g2_show_mag(u8g2_t *u8g2);
 
 #endif

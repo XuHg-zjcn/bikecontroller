@@ -34,6 +34,8 @@
 #define PIN_NUM_RST  CONFIG_LCD_PIN_RST
 #define PIN_NUM_BL   CONFIG_LCD_PIN_BL
 
+extern int16_t mpu9250_data[9];
+
 static spi_device_handle_t dev;
 
 void lcd_bl_off()
@@ -166,4 +168,27 @@ void u8g2_show_zero(u8g2_t *u8g2)
   u8g2_SetFont(u8g2, u8g2_font_spleen32x64_mf);
   u8g2_DrawStr(u8g2, 0, 56, " 0");
   u8g2_SendBuffer(u8g2);
+}
+
+#define X0 114
+#define Y0 50
+#define R 8
+#define ROTATE(x0, y0, cosr, sinr, x, y) ((int)roundf((x0)+(cosr)*(x)-(sinr)*(y))),\
+	                                 ((int)roundf((y0)+(sinr)*(x)+(cosr)*(y)))
+void u8g2_show_mag(u8g2_t *u8g2)
+{
+  float rad = atan2f(mpu9250_data[6], mpu9250_data[8]);
+  float cosr = cosf(rad);
+  float sinr = sinf(rad);
+  //clear
+  u8g2_SetDrawColor(u8g2, 0);
+  u8g2_DrawDisc(u8g2, X0, Y0, ceilf(R*sqrtf(2)), U8G2_DRAW_ALL);
+  //draw
+  u8g2_SetDrawColor(u8g2, 1);
+  u8g2_DrawTriangle(u8g2, ROTATE(X0, Y0, cosr, sinr,  0,  0),
+		          ROTATE(X0, Y0, cosr, sinr,  0, -R),
+			  ROTATE(X0, Y0, cosr, sinr, -R,  R));
+  u8g2_DrawTriangle(u8g2, ROTATE(X0, Y0, cosr, sinr,  0,  0),
+		          ROTATE(X0, Y0, cosr, sinr,  0, -R),
+			  ROTATE(X0, Y0, cosr, sinr,  R,  R));
 }

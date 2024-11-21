@@ -107,7 +107,8 @@
 #define MPU9250_I2C_TIMEOUT  100
 #define AK8963_I2C_ADDR     0x0C
 
-Buffer buffmpu(2*6, 128);
+int16_t mpu9250_data[9];
+Buffer buffmpu(2*9, 128);
 
 //copy from esp-idf/examples/peripherals/i2c/i2c_simple/main/i2c_simple_main.c
 /**
@@ -252,24 +253,41 @@ int mpu9250_init()
   }else{
     printf("mpu9250's magnet detected\n");
   }
+  ak8963_register_write_byte(0x0B, 0x01); //reset
+  vTaskDelay(pdMS_TO_TICKS(100));
+  ak8963_register_write_byte(0x0A, 0x0f); //fuse ROM access
+  uint8_t sen[3];
+  ak8963_register_read(0x10, sen, 3);
+  printf("ak8963 rom %d,%d,%d", sen[0], sen[1], sen[2]);
+  ak8963_register_write_byte(0x0A, 0x16); //16bit output, 100Hz measure
   return 0;
 }
 
 //TODO: move C++ code to another file
 void mpu9250_print_data()
 {
-  int16_t data[6];
-  uint8_t buff[16];
+  uint8_t buff[19];
+  uint32_t count=0;
   while(1){
     vTaskDelay(pdMS_TO_TICKS(10));
     mpu9250_register_read(ACCEL_XOUT_H, buff, 6);
-    mpu9250_register_read(GYRO_XOUT_H, buff+8, 6);
-    data[0] = buff[0]*256+buff[1];
-    data[1] = buff[2]*256+buff[3];
-    data[2] = buff[4]*256+buff[5];
-    data[3] = buff[8]*256+buff[9];
-    data[4] = buff[10]*256+buff[11];
-    data[5] = buff[12]*256+buff[13];
-    buffmpu.w_head.push_force(1, data);
+    mpu9250_register_read(GYRO_XOUT_H, buff+6, 6);
+    for(int i=0;i<6;i++){
+      mpu9250_data[i] = (buff[2*i]<<8) | buff[2*i+1];
+    }
+    if(ak8963_register_read_byte(0x02) & 0x01){
+      ak8963_register_read(0x03, buff+12, 7); //require read ST2(else data are keep)
+      for(int i=6;i<9;i++){
+        mpu9250_data[i] = buff[2*i] | (buff[2*i+1]<<8);
+      }
+    }
+    count++;
+    if(count % 100 == 0){
+      for(int i=0;i<9;i+=3){
+        printf("% 5d,% 5d,% 5d   ", mpu9250_data[i+0], mpu9250_data[i+1], mpu9250_data[i+2]);
+      }
+      printf("\n");
+    }
+    buffmpu.w_head.push_force(1, mpu9250_data);
   }
 }
