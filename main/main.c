@@ -59,10 +59,10 @@ void app_main(void)
     u8g2_DrawStr(&u8g2, 113, 16, "km");
     u8g2_SendBuffer(&u8g2);
     littlefs_init();
-    mpu9250_init();
+    /*mpu9250_init();
     xTaskCreatePinnedToCore((void (*)(void *))wheel_speed, "whell_speed", 4096, &u8g2, 3, NULL, tskNO_AFFINITY);
     xTaskCreatePinnedToCore((void (*)(void *))mpu9250_print_data, "mpu9250", 4096, NULL, 3, NULL, tskNO_AFFINITY);
-    xTaskCreatePinnedToCore((void (*)(void *))record_proc, "record", 4096, NULL, 3, NULL, tskNO_AFFINITY);
+    xTaskCreatePinnedToCore((void (*)(void *))record_proc, "record", 4096, NULL, 3, NULL, tskNO_AFFINITY);*/
     
     //ESP_LOGI(TAG, "ESP_WIFI_MODE_STA");
     //wifi_init_sta();

@@ -23,16 +23,14 @@
 #include "esp_rom_sys.h"
 #include <string.h>
 #include <math.h>
+#include "74hc595.h"
 
-#define LCD_HOST    SPI3_HOST
-#define PIN_NUM_MISO CONFIG_LCD_PIN_MISO //unused
-#define PIN_NUM_MOSI CONFIG_LCD_PIN_MOSI
-#define PIN_NUM_CLK  CONFIG_LCD_PIN_CLK
-#define PIN_NUM_CS   CONFIG_LCD_PIN_CS
+#define LCD_HOST           SPI2_HOST
+#define HC595_MSK_CS_LCD   (1UL<<2)
 
-#define PIN_NUM_DC   CONFIG_LCD_PIN_DC
-#define PIN_NUM_RST  CONFIG_LCD_PIN_RST
-#define PIN_NUM_BL   CONFIG_LCD_PIN_BL
+#define HC595_MSK_DC       (1UL<<4)
+#define HC595_MSK_RST      (1UL<<3)
+#define HC595_MSK_BL       (1UL<<1)
 
 extern int16_t mpu9250_data[9];
 
@@ -40,47 +38,30 @@ static spi_device_handle_t dev;
 
 void lcd_bl_off()
 {
-  gpio_set_level(PIN_NUM_BL, 0);
+  hc595_reset(HC595_MSK_BL);
 }
 
 void lcd_bl_on()
 {
-  gpio_set_level(PIN_NUM_BL, 1);
+  hc595_set(HC595_MSK_BL);
 }
 
 static void st7567_gpio_spi_init()
 {
   esp_err_t ret;
-  spi_bus_config_t buscfg = {
-    .miso_io_num = PIN_NUM_MISO,
-    .mosi_io_num = PIN_NUM_MOSI,
-    .sclk_io_num = PIN_NUM_CLK,
-    .quadwp_io_num = -1,
-    .quadhd_io_num = -1,
-    .max_transfer_sz = 256,
-  };
   spi_device_interface_config_t devcfg = {
     .clock_speed_hz = 1 *1000 * 1000,       //Clock out at 10 MHz
     .mode = 3,                              //SPI mode 3
-    .spics_io_num = PIN_NUM_CS,             //CS pin
+    .spics_io_num = -1,                     //not using CS pin
     .queue_size = 7,                        //We want to be able to queue 7 transactions at a time
   };
   //Initialize the SPI bus
-  ret = spi_bus_initialize(LCD_HOST, &buscfg, SPI_DMA_CH_AUTO);
-  ESP_ERROR_CHECK(ret);
   ret = spi_bus_add_device(LCD_HOST, &devcfg, &dev);
   ESP_ERROR_CHECK(ret);
-
-  gpio_config_t io_conf = {};
-  io_conf.pin_bit_mask = (1ULL << PIN_NUM_DC) | (1ULL << PIN_NUM_RST) | (1ULL << PIN_NUM_BL);
-  io_conf.mode = GPIO_MODE_OUTPUT;
-  io_conf.pull_down_en = false;
-  io_conf.pull_up_en = true;
-  gpio_config(&io_conf);
-
-  gpio_set_level(PIN_NUM_RST, 0);
+  
+  hc595_reset(HC595_MSK_RST);
   esp_rom_delay_us(10);
-  gpio_set_level(PIN_NUM_RST, 1);
+  hc595_set(HC595_MSK_RST);
   esp_rom_delay_us(10);
 }
 
@@ -95,19 +76,25 @@ static uint8_t st7567_jlx12864_byte_cb(u8x8_t *u8x8, uint8_t msg, uint8_t arg_in
     memset(&t, 0, sizeof(t));
     t.length = arg_int*8;
     t.tx_buffer = arg_ptr;
+    hc595_reset(HC595_MSK_CS_LCD);
     ret = spi_device_polling_transmit(dev, &t); //Transmit!
+    hc595_set(HC595_MSK_CS_LCD);
     assert(ret == ESP_OK);          //Should have had no issues.
     break;
   case U8X8_MSG_BYTE_SET_DC:
-    gpio_set_level(PIN_NUM_DC, arg_int);
+    if(arg_int){
+      hc595_set(HC595_MSK_DC);
+    }else{
+      hc595_reset(HC595_MSK_DC);
+    }
     esp_rom_delay_us(1);
     break;
   case U8X8_MSG_BYTE_START_TRANSFER:
-    gpio_set_level(PIN_NUM_CS, 0);
+    hc595_reset(HC595_MSK_CS_LCD);
     esp_rom_delay_us(1);
     break;
   case U8X8_MSG_BYTE_END_TRANSFER:
-    gpio_set_level(PIN_NUM_CS, 1);
+    hc595_set(HC595_MSK_CS_LCD);
     esp_rom_delay_us(1);
     break;
   default:

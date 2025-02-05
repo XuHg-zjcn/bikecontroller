@@ -30,10 +30,7 @@ static const char *TAG = "example";
 
 // Pin assignments can be set in menuconfig, see "SD SPI Example Configuration" menu.
 // You can also change the pin assignments here by changing the following 4 lines.
-#define PIN_NUM_MISO  CONFIG_SDSPI_PIN_MISO
-#define PIN_NUM_MOSI  CONFIG_SDSPI_PIN_MOSI
-#define PIN_NUM_CLK   CONFIG_SDSPI_PIN_CLK
-#define PIN_NUM_CS    CONFIG_SDSPI_PIN_CS
+#define PIN_NUM_CS    CONFIG_SPI_PIN_CS_SD
 
 void sdcard_init()
 {
@@ -65,21 +62,8 @@ void sdcard_init()
     // For setting a specific frequency, use host.max_freq_khz (range 400kHz - 20MHz for SDSPI)
     // Example: for fixed frequency of 10MHz, use host.max_freq_khz = 10000;
     sdmmc_host_t host = SDSPI_HOST_DEFAULT();
+    host.slot = SPI2_HOST;
     host.max_freq_khz = 5000;
-
-    spi_bus_config_t bus_cfg = {
-        .mosi_io_num = PIN_NUM_MOSI,
-        .miso_io_num = PIN_NUM_MISO,
-        .sclk_io_num = PIN_NUM_CLK,
-        .quadwp_io_num = -1,
-        .quadhd_io_num = -1,
-        .max_transfer_sz = 4000,
-    };
-    ret = spi_bus_initialize(host.slot, &bus_cfg, SDSPI_DEFAULT_DMA);
-    if (ret != ESP_OK) {
-        ESP_LOGE(TAG, "Failed to initialize bus.");
-        return;
-    }
 
     // This initializes the slot without card detect (CD) and write protect (WP) signals.
     // Modify slot_config.gpio_cd and slot_config.gpio_wp if your board has these signals.

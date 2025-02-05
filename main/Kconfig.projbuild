@@ -78,7 +78,7 @@ endmenu
 
 menu "GPIO Pin Configuration"
 
-    config SDSPI_PIN_MOSI
+    config SPI_PIN_MOSI
         int "SDSPI MOSI GPIO number"
         default 15 if IDF_TARGET_ESP32
         default 35 if IDF_TARGET_ESP32S2
@@ -87,7 +87,7 @@ menu "GPIO Pin Configuration"
         default 11 if IDF_TARGET_ESP32P4
         default 4  # C3 and others
 
-    config SDSPI_PIN_MISO
+    config SPI_PIN_MISO
         int "SDSPI MISO GPIO number"
         default 2 if IDF_TARGET_ESP32
         default 37 if IDF_TARGET_ESP32S2
@@ -96,7 +96,7 @@ menu "GPIO Pin Configuration"
         default 13 if IDF_TARGET_ESP32P4
         default 6  # C3 and others
 
-    config SDSPI_PIN_CLK
+    config SPI_PIN_CLK
         int "SDSPI CLK GPIO number"
         default 14 if IDF_TARGET_ESP32
         default 36 if IDF_TARGET_ESP32S2
@@ -105,7 +105,7 @@ menu "GPIO Pin Configuration"
         default 12 if IDF_TARGET_ESP32P4
         default 5  # C3 and others
 
-    config SDSPI_PIN_CS
+    config SPI_PIN_CS_SD
         int "SDSPI CS GPIO number"
         default 13 if IDF_TARGET_ESP32
         default 34 if IDF_TARGET_ESP32S2
@@ -113,19 +113,7 @@ menu "GPIO Pin Configuration"
         default 10 if IDF_TARGET_ESP32P4
         default 1  # C3 and others
 
-    config LCD_PIN_MISO
-        int "LCD MISO GPIO number"
-        default 19
-
-    config LCD_PIN_MOSI
-        int "LCD MOSI GPIO number"
-        default 23
-
-    config LCD_PIN_CLK
-        int "LCD CLK GPIO number"
-        default 18
-
-    config LCD_PIN_CS
+    config SPI_PIN_CS_LCD
         int "LCD CS GPIO number"
         default 25
 
