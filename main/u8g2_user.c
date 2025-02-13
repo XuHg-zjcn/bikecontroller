@@ -26,11 +26,11 @@
 #include "74hc595.h"
 
 #define LCD_HOST           SPI2_HOST
-#define HC595_MSK_CS_LCD   (1UL<<2)
+#define HC595_MSK_CS_LCD   (1UL<<(CONFIG_IOE_NUM_CS_LCD))
 
-#define HC595_MSK_DC       (1UL<<4)
-#define HC595_MSK_RST      (1UL<<3)
-#define HC595_MSK_BL       (1UL<<1)
+#define HC595_MSK_DC       (1UL<<(CONFIG_IOE_NUM_LCD_DC))
+#define HC595_MSK_RST      (1UL<<(CONFIG_IOE_NUM_LCD_RST))
+#define HC595_MSK_BL       (1UL<<(CONFIG_IOE_NUM_LCD_BL))
 
 extern int16_t mpu9250_data[9];
 

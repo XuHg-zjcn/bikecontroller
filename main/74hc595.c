@@ -21,14 +21,21 @@
 #include "driver/spi_master.h"
 
 #define SPI_HOST        SPI2_HOST
-#define PIN_HC595_CLR   0
-#define PIN_HC595_RCLK  4
+#define PIN_NUM_CLR   CONFIG_HC595_PIN_CLR
+#define PIN_NUM_RCLK  CONFIG_HC595_PIN_RCLK
 static spi_device_handle_t dev;
 static uint8_t hc595_curr = 0;
 
 void hc595_init(void)
 {
   esp_err_t ret;
+  gpio_config_t io_conf = {};
+  io_conf.pin_bit_mask = (1ULL << PIN_NUM_CLR) | (1ULL << PIN_NUM_RCLK);
+  io_conf.mode = GPIO_MODE_OUTPUT;
+  io_conf.pull_down_en = false;
+  io_conf.pull_up_en = false;
+  gpio_config(&io_conf);
+
   spi_device_interface_config_t devcfg = {
     .clock_speed_hz = 2 * 1000 * 1000,       //Clock out at 2 MHz
     .mode = 3,                              //SPI mode 3
@@ -44,8 +51,8 @@ void hc595_write(uint8_t data)
 {
   spi_transaction_t t;
   hc595_curr = data;
-  gpio_set_level(PIN_HC595_CLR, 1);
-  gpio_set_level(PIN_HC595_RCLK, 0);
+  gpio_set_level(PIN_NUM_CLR, 1);
+  gpio_set_level(PIN_NUM_RCLK, 0);
 
   memset(&t, 0, sizeof(t));
   t.length = 8;
@@ -53,9 +60,9 @@ void hc595_write(uint8_t data)
   spi_device_polling_transmit(dev, &t);
 
   esp_rom_delay_us(1);
-  gpio_set_level(PIN_HC595_RCLK, 1);
+  gpio_set_level(PIN_NUM_RCLK, 1);
   esp_rom_delay_us(1);
-  gpio_set_level(PIN_HC595_CLR, 0);
+  gpio_set_level(PIN_NUM_CLR, 0);
 }
 
 uint8_t hc595_set(uint8_t mask)

@@ -30,7 +30,7 @@ static const char *TAG = "example";
 
 // Pin assignments can be set in menuconfig, see "SD SPI Example Configuration" menu.
 // You can also change the pin assignments here by changing the following 4 lines.
-#define PIN_NUM_CS    CONFIG_SPI_PIN_CS_SD
+#define PIN_NUM_CS    3 //修改库太麻烦，临时使用I2SI_SD
 
 void sdcard_init()
 {

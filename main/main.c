@@ -33,6 +33,8 @@
 #include "i2c.h"
 #include "mpu9250.h"
 #include "record.h"
+#include "spi.h"
+#include "74hc595.h"
 
 static const char *TAG = "main";
 
@@ -50,7 +52,9 @@ void app_main(void)
 
     led_init();
     i2c_master_init();
-    sdcard_init();
+    spi_init();
+    hc595_init();
+    //sdcard_init();
     u8g2_init(&u8g2);
     u8g2_DrawFrame(&u8g2, 0, 0, 128, 64);
     u8g2_SetFont(&u8g2, u8g2_font_spleen8x16_mf);
@@ -58,7 +62,7 @@ void app_main(void)
     u8g2_DrawStr(&u8g2, 64, 16, "  0.00");
     u8g2_DrawStr(&u8g2, 113, 16, "km");
     u8g2_SendBuffer(&u8g2);
-    littlefs_init();
+    //littlefs_init();
     /*mpu9250_init();
     xTaskCreatePinnedToCore((void (*)(void *))wheel_speed, "whell_speed", 4096, &u8g2, 3, NULL, tskNO_AFFINITY);
     xTaskCreatePinnedToCore((void (*)(void *))mpu9250_print_data, "mpu9250", 4096, NULL, 3, NULL, tskNO_AFFINITY);

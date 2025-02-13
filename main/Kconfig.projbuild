@@ -79,55 +79,44 @@ endmenu
 menu "GPIO Pin Configuration"
 
     config SPI_PIN_MOSI
-        int "SDSPI MOSI GPIO number"
-        default 15 if IDF_TARGET_ESP32
-        default 35 if IDF_TARGET_ESP32S2
-        default 35 if IDF_TARGET_ESP32S3
-        default 5  if IDF_TARGET_ESP32H2
-        default 11 if IDF_TARGET_ESP32P4
-        default 4  # C3 and others
+        int "SPI MOSI GPIO number"
+        default 7  # Project board
 
     config SPI_PIN_MISO
-        int "SDSPI MISO GPIO number"
-        default 2 if IDF_TARGET_ESP32
-        default 37 if IDF_TARGET_ESP32S2
-        default 37 if IDF_TARGET_ESP32S3
-        default 0  if IDF_TARGET_ESP32H2
-        default 13 if IDF_TARGET_ESP32P4
-        default 6  # C3 and others
+        int "SPI MISO GPIO number"
+        default 2  # Project board
 
     config SPI_PIN_CLK
-        int "SDSPI CLK GPIO number"
-        default 14 if IDF_TARGET_ESP32
-        default 36 if IDF_TARGET_ESP32S2
-        default 36 if IDF_TARGET_ESP32S3
-        default 4  if IDF_TARGET_ESP32H2
-        default 12 if IDF_TARGET_ESP32P4
-        default 5  # C3 and others
+        int "SPI CLK GPIO number"
+        default 6  # Project board
 
-    config SPI_PIN_CS_SD
-        int "SDSPI CS GPIO number"
-        default 13 if IDF_TARGET_ESP32
-        default 34 if IDF_TARGET_ESP32S2
-        default 34 if IDF_TARGET_ESP32S3
-        default 10 if IDF_TARGET_ESP32P4
-        default 1  # C3 and others
+    config HC595_PIN_CLR
+        int "74HC595 Clear GPIO number"
+	default 0  # Project board
 
-    config SPI_PIN_CS_LCD
-        int "LCD CS GPIO number"
-        default 25
+    config HC595_PIN_RCLK
+        int "74HC595 Latch Clock GPIO number"
+        default 4  # Project board
 
-    config LCD_PIN_DC
-        int "LCD DC(Data/Command Select) GPIO number"
-        default 22
+    config IOE_NUM_CS_SD
+        int "SPI CS microSD IO Expander number"
+        default 0  # Project board
 
-    config LCD_PIN_RST
-	int "LCD RST(Reset) GPIO number"
-	default 21
+    config IOE_NUM_CS_LCD
+        int "SPI CS LCD IO Expander number"
+        default 2  # Project board
 
-    config LCD_PIN_BL
-        int "LCD BL(backlight) GPIO number"
-        default 26
+    config IOE_NUM_LCD_DC
+        int "LCD DC(Data/Command Select) IO Expander number"
+        default 4  # Project board
+
+    config IOE_NUM_LCD_RST
+	int "LCD RST(Reset) IO Expander number"
+	default 3  # Project board
+
+    config IOE_NUM_LCD_BL
+        int "LCD BL(backlight) IO Expander number"
+        default 1  # Project board
 
     config I2C_MASTER_SCL
         int "SCL GPIO Num"
