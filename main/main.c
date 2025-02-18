@@ -1,6 +1,6 @@
 /*
  * 自行车控制器主程序文件
- * Copyright (C) 2024  徐瑞骏(科技骏马)
+ * Copyright (C) 2024-2025  徐瑞骏(科技骏马)
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -35,6 +35,7 @@
 #include "record.h"
 #include "spi.h"
 #include "74hc595.h"
+#include "uart.h"
 
 static const char *TAG = "main";
 
@@ -54,6 +55,7 @@ void app_main(void)
     i2c_master_init();
     spi_init();
     hc595_init();
+    UART_Init();
     //sdcard_init();
     u8g2_init(&u8g2);
     u8g2_DrawFrame(&u8g2, 0, 0, 128, 64);
@@ -62,6 +64,7 @@ void app_main(void)
     u8g2_DrawStr(&u8g2, 64, 16, "  0.00");
     u8g2_DrawStr(&u8g2, 113, 16, "km");
     u8g2_SendBuffer(&u8g2);
+    ESP_LOGI(TAG, "init finish");
     //littlefs_init();
     /*mpu9250_init();
     xTaskCreatePinnedToCore((void (*)(void *))wheel_speed, "whell_speed", 4096, &u8g2, 3, NULL, tskNO_AFFINITY);
@@ -71,9 +74,14 @@ void app_main(void)
     //ESP_LOGI(TAG, "ESP_WIFI_MODE_STA");
     //wifi_init_sta();
     //xTaskCreatePinnedToCore((void (*)(void *))client_fn, "client", 4096, NULL, 3, NULL, tskNO_AFFINITY);
+    int i=0;
+    char tmp[32];
     while(1){
-      vTaskDelay(pdMS_TO_TICKS(50));
+      vTaskDelay(pdMS_TO_TICKS(200));
+      snprintf(tmp, 31, "%d", i);
+      u8g2_DrawStr(&u8g2, 0, 16, tmp);
       u8g2_show_mag(&u8g2);
       u8g2_SendBuffer(&u8g2);
+      i++;
     }
 }
