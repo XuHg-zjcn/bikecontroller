@@ -20,7 +20,7 @@
 
 #include "esp_check.h"
 
-esp_err_t power_set_walkup_pin(int pin_num, int trig_stat);
+void power_init();
 void power_light_sleep();
 
 #endif

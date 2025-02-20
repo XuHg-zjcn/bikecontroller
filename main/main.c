@@ -36,6 +36,7 @@
 #include "spi.h"
 #include "74hc595.h"
 #include "uart.h"
+#include "power.h"
 
 static const char *TAG = "main";
 
@@ -57,6 +58,7 @@ void app_main(void)
     spi_init();
     hc595_init();
     UART_Init();
+    power_init();
     //sdcard_init();
     u8g2_init(&u8g2);
     u8g2_DrawFrame(&u8g2, 0, 0, 128, 64);

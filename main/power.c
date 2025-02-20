@@ -30,13 +30,9 @@ static const char *TAG = "power";
 #define PIN_NUM_CLR   CONFIG_HC595_PIN_CLR
 #define PIN_NUM_RCLK  CONFIG_HC595_PIN_RCLK
 
-esp_err_t power_set_walkup_pin(int pin_num, int trig_stat)
+void power_init()
 {
-  /*ESP_RETURN_ON_ERROR(gpio_wakeup_enable(pin_num, trig_stat == 0 ? GPIO_INTR_LOW_LEVEL : GPIO_INTR_HIGH_LEVEL),
-    TAG, "Enable gpio wakeup failed");*/
-  ESP_RETURN_ON_ERROR(esp_sleep_enable_gpio_wakeup(), TAG, "Configure gpio as wakeup source failed");
-//ESP_LOGI(TAG, "gpio wakeup source is ready on PIN%d", pin_num);
-  return ESP_OK;
+  esp_log_level_set(TAG, ESP_LOG_INFO);
 }
 
 void power_light_sleep()

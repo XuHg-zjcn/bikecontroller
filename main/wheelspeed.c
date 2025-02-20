@@ -39,6 +39,7 @@ void wheel_speed(u8g2_t *u8g2)
 {
     uint32_t hall_cnt = 0;
     uint32_t ticks_hall = 0;
+    esp_log_level_set(TAG, ESP_LOG_INFO);
     ESP_LOGI(TAG, "entry loop");
     while (1) {
       if (xTaskNotifyWait(ULONG_MAX, ULONG_MAX, &ticks_hall, pdMS_TO_TICKS(SHOW_TIMEOUT_MS)) == pdTRUE) {
