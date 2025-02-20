@@ -54,7 +54,7 @@ void wheel_speed(u8g2_t *u8g2)
 	//storage_record_wheelspeed(hall_cnt, ticks_hall);
       }else{
 	u8g2_show_zero(u8g2);
-	//power_light_sleep();
+	power_light_sleep();
       }
     }
 }

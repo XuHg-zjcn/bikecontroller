@@ -27,6 +27,9 @@
 
 static const char *TAG = "power";
 
+#define PIN_NUM_CLR   CONFIG_HC595_PIN_CLR
+#define PIN_NUM_RCLK  CONFIG_HC595_PIN_RCLK
+
 esp_err_t power_set_walkup_pin(int pin_num, int trig_stat)
 {
   /*ESP_RETURN_ON_ERROR(gpio_wakeup_enable(pin_num, trig_stat == 0 ? GPIO_INTR_LOW_LEVEL : GPIO_INTR_HIGH_LEVEL),
@@ -40,16 +43,15 @@ void power_light_sleep()
 {
   lcd_bl_off();
   ESP_LOGI(TAG, "Ready entry light sleep");
-  uart_wait_tx_idle_polling(CONFIG_ESP_CONSOLE_UART_NUM);
-  //只支持电平唤醒
-  gpio_wakeup_enable(12, GPIO_INTR_LOW_LEVEL);
+  gpio_set_level(PIN_NUM_CLR, 0);
+  gpio_set_level(PIN_NUM_RCLK, 0); //先设置74HC595再休眠能维持电平输出，LCD不会被复位
+  uart_wait_tx_idle_polling(UART_NUM_0);
+  gpio_wakeup_enable(21, GPIO_INTR_LOW_LEVEL); //经测试，UART唤醒无效，改用GPIO唤醒
   esp_sleep_enable_gpio_wakeup();
   int64_t t_before_us = esp_timer_get_time();
   esp_light_sleep_start();
   int64_t t_after_us = esp_timer_get_time();
-  gpio_wakeup_disable(12);
-  //唤醒后需要切换回边沿触发，否则会反复进入中断函数
-  gpio_set_intr_type(12, GPIO_INTR_NEGEDGE);
+  gpio_wakeup_disable(21);
 
   ESP_LOGI(TAG, "Returned from light sleep, reason: ***, now t=%d ms, slept for %d ms",
 	   ((int) (t_after_us / 1000)),
