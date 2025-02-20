@@ -1,6 +1,6 @@
 /*
  * 轮速计驱动程序
- * Copyright (C) 2024  徐瑞骏(科技骏马)
+ * Copyright (C) 2024-2025  徐瑞骏(科技骏马)
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -30,56 +30,18 @@
 static const char *TAG = "wheelspeed";
 static volatile uint64_t timer_samp;
 
-#define GPIO_NUM_HALL  CONFIG_HALL_PIN
-#define RESOLUTION_HZ  100000 // 100KHz
+#define RESOLUTION_HZ  20000 // 20KHz
 #define METER_PER_CNT  1.52f
 #define SHOW_TIMEOUT_MS (METER_PER_CNT/(0.5/3.6)*1000)
 
-/**
- * @brief User defined context, to be passed to GPIO ISR callback function.
- */
-typedef struct {
-    TaskHandle_t task_to_notify;
-    gpio_num_t echo_gpio;
-} gpio_callback_user_data_t;
-
-/**
- * @brief GPIO ISR callback function, called when there's fall edge detected on the GPIO of hall.
- */
-static void hall_callback(void *user_data)
-{
-    timer_samp = esp_timer_get_time();
-    gpio_callback_user_data_t *callback_user_data = (gpio_callback_user_data_t *)user_data;
-    TaskHandle_t task_to_notify = callback_user_data->task_to_notify;
-    xTaskNotifyFromISR(task_to_notify, 0, eNoAction, NULL);
-}
 
 void wheel_speed(u8g2_t *u8g2)
 {
-    ESP_LOGI(TAG, "Configure hall gpio");
-    gpio_config_t echo_io_conf = {
-        .mode = GPIO_MODE_INPUT,
-        .intr_type = GPIO_INTR_NEGEDGE, // capture signal on fall edge
-        .pull_up_en = true, // pull up internally
-        .pin_bit_mask = 1ULL << GPIO_NUM_HALL,
-    };
-    ESP_ERROR_CHECK(gpio_config(&echo_io_conf));
-
-    ESP_LOGI(TAG, "Install GPIO edge interrupt");
-    ESP_ERROR_CHECK(gpio_install_isr_service(0));
-    gpio_callback_user_data_t callback_user_data = {
-        .echo_gpio = GPIO_NUM_HALL,
-        .task_to_notify = xTaskGetCurrentTaskHandle(),
-    };
-    ESP_ERROR_CHECK(gpio_isr_handler_add(GPIO_NUM_HALL, hall_callback, &callback_user_data));
-
     uint32_t hall_cnt = 0;
-    uint64_t ts_old=0, ts_curr=0;
+    uint32_t ticks_hall = 0;
     ESP_LOGI(TAG, "entry loop");
     while (1) {
-      if (xTaskNotifyWait(0x00, ULONG_MAX, NULL, pdMS_TO_TICKS(SHOW_TIMEOUT_MS)) == pdTRUE) {
-	ts_curr = timer_samp/10;
-	uint64_t ticks_hall = ts_curr - ts_old;
+      if (xTaskNotifyWait(ULONG_MAX, ULONG_MAX, &ticks_hall, pdMS_TO_TICKS(SHOW_TIMEOUT_MS)) == pdTRUE) {
 	if (ticks_hall < RESOLUTION_HZ/50) {
 	  //too short
 	  continue;
@@ -87,13 +49,12 @@ void wheel_speed(u8g2_t *u8g2)
 	hall_cnt++;
 	float speed_kmh = (METER_PER_CNT*3.6*RESOLUTION_HZ)/(float)ticks_hall;
 	float dist_km = METER_PER_CNT*hall_cnt/1000.0;
-	ESP_LOGI(TAG, "hall_cnt: %lu, ticks=%llu, speed: %.2fkm/h", hall_cnt, ticks_hall, speed_kmh);
+	ESP_LOGI(TAG, "hall_cnt: %lu, ticks=%lu, speed: %.2fkm/h", hall_cnt, ticks_hall, speed_kmh);
 	u8g2_show(u8g2, speed_kmh, dist_km);
-	storage_record_wheelspeed(hall_cnt, ticks_hall);
-	ts_old = ts_curr;
+	//storage_record_wheelspeed(hall_cnt, ticks_hall);
       }else{
 	u8g2_show_zero(u8g2);
-	power_light_sleep();
+	//power_light_sleep();
       }
     }
 }

@@ -43,6 +43,7 @@
 static QueueHandle_t uart0_queue;
 static const char *TAG = "uart";
 
+extern TaskHandle_t task_wheelspeed;
 extern int16_t mpu9250_data[9];
 
 esp_err_t UART_direct_inv()
@@ -61,7 +62,10 @@ void UART_proc_rx(uint8_t *p, size_t len)
   while(len > 0){
     if(len>=8 && strncmp((const char *)p, "HatD", 4)==0){
       uint32_t ticks = READ_UINT32_UNALIGN(p+4);
-      ESP_LOGI(TAG, "hall cap %4lu.%02lu ms", ticks/100, ticks%100);
+      ESP_LOGI(TAG, "hall cap %4lu.%02lu ms", (ticks*5)/100, (ticks*5)%100);
+      if(task_wheelspeed && ticks > 1100){
+	xTaskNotify(task_wheelspeed, ticks, eSetValueWithOverwrite);
+      }
       p += 8;
       len -= 8;
     }else if(len>=10 && strncmp((const char *)p, "MAGd", 4)==0){

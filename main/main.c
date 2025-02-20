@@ -39,6 +39,7 @@
 
 static const char *TAG = "main";
 
+TaskHandle_t task_wheelspeed;
 u8g2_t u8g2;
 
 void app_main(void)
@@ -66,22 +67,17 @@ void app_main(void)
     u8g2_SendBuffer(&u8g2);
     ESP_LOGI(TAG, "init finish");
     //littlefs_init();
-    /*mpu9250_init();
-    xTaskCreatePinnedToCore((void (*)(void *))wheel_speed, "whell_speed", 4096, &u8g2, 3, NULL, tskNO_AFFINITY);
-    xTaskCreatePinnedToCore((void (*)(void *))mpu9250_print_data, "mpu9250", 4096, NULL, 3, NULL, tskNO_AFFINITY);
+    //mpu9250_init();
+    xTaskCreate((void (*)(void *))wheel_speed, "whell_speed", 4096, &u8g2, 12, &task_wheelspeed);
+    /*xTaskCreatePinnedToCore((void (*)(void *))mpu9250_print_data, "mpu9250", 4096, NULL, 3, NULL, tskNO_AFFINITY);
     xTaskCreatePinnedToCore((void (*)(void *))record_proc, "record", 4096, NULL, 3, NULL, tskNO_AFFINITY);*/
     
     //ESP_LOGI(TAG, "ESP_WIFI_MODE_STA");
     //wifi_init_sta();
     //xTaskCreatePinnedToCore((void (*)(void *))client_fn, "client", 4096, NULL, 3, NULL, tskNO_AFFINITY);
-    int i=0;
-    char tmp[32];
     while(1){
       vTaskDelay(pdMS_TO_TICKS(200));
-      snprintf(tmp, 31, "%d", i);
-      u8g2_DrawStr(&u8g2, 0, 16, tmp);
       u8g2_show_mag(&u8g2);
       u8g2_SendBuffer(&u8g2);
-      i++;
     }
 }
